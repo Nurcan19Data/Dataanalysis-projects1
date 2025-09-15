@@ -1,7 +1,13 @@
-#SQL Queries for Transaction Analysis.
-This project contains SQL queries that are used to analyze transaction data, customer information, and transaction types within a database. The goal is to extract meaningful insights about customers, transactions, and ATM usage patterns.
+# Transaction Data Analysis Project
 
-Project Objective
+This repository contains SQL queries to analyze **transaction data** and gain insights into customer behavior, transaction amounts, and ATM usage. The project involves various SQL queries to extract valuable insights, such as identifying customers' most frequent transactions, segmenting customers by age group, and determining the largest transaction amount.
+
+## Contents
+- **SQL Queries**: A series of SQL queries to extract insights from the transaction and customer data.
+- **Data Analysis**: Key metrics and analysis based on customer transaction data.
+
+## SQL Queries
+
 These queries are designed to perform a variety of analyses, including:
 
 Calculating the last transaction date for each customer and the number of days since.
