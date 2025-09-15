@@ -1,4 +1,4 @@
-SQL Queries for Transaction Analysis
+#SQL Queries for Transaction Analysis
 This project contains SQL queries that are used to analyze transaction data, customer information, and transaction types within a database. The goal is to extract meaningful insights about customers, transactions, and ATM usage patterns.
 
 Project Objective
