@@ -6,8 +6,7 @@ select * from dim_transaction_type;
 
 
 
---1. Hər müştərinin sonuncu tranzaksiyasının tarixi və həmin tarixdən bugünədək neçə gün keçdiyinin ekrana çıxardılması
-
+--1. Displaying the date of each customer's last transaction and the number of days that have elapsed from that date to the present day
 select  d.cardholderid,d.firstname,d.lastname,max(t.transactionenddatetime),
 trunc(sysdate-max(t.transactionenddatetime)) as days_since_last_transactiondate
 from Texas t
@@ -18,7 +17,7 @@ order by days_since_last_transactiondate desc;
 
 
 
---2. Ən böyük məbləğli tranzaksiyanı edən şəxsin adı və hansı məbləğdə tranzaksiya etdiyi və hansı peşənin sahibi olması
+--2. The name of the person who carried out the transaction with the largest amount, the amount of that transaction, and their profession
 SELECT c.FIRSTNAME,c.LASTNAME,t.TRANSACTIONAMOUNT,c.OCCUPATION
 FROM texas t
 JOIN dim_customers c ON t.CARDHOLDERID = c.CARDHOLDERID
@@ -27,7 +26,7 @@ WHERE t.TRANSACTIONAMOUNT in (SELECT MAX(TRANSACTIONAMOUNT) FROM texas t);
 
 
 
---3. Heç tranzaksiya etməmiş neçə müştərinin sayının təyini
+--3. Determining the number of customers who have never made a transaction
 select count(*) as no_transaction_customers
 from dim_customers c
 where not exists(select 1 from texas t where t.cardholderid=c.cardholderid);
@@ -36,8 +35,8 @@ where not exists(select 1 from texas t where t.cardholderid=c.cardholderid);
 
 
 
---4. Hər müştəriyə görə tranzaksiya məbləği ortalamasının tapılması və yalnız tam hissə məbləğlərin yuvarlaşdırılaraq kəsr hissəsiz ekrana çıxardılması.
--- Burada müştəri adlarını ekrana çıxararkən bütün adların bütün simvollarının böyük hərflə qeyd edilməsi lazımdır.
+--4. Calculate the average transaction amount for each customer, and display the values ​​rounded to the nearest whole number (omitting the fractional part).
+-- When displaying customer names, ensure that all characters in the names are in uppercase.
 select upper(d.firstname),round(avg(t.transactionamount),0) 
 from dim_customers d
 join texas t on d.cardholderid=t.cardholderid
@@ -46,7 +45,7 @@ group by d.firstname
 
 
 
---5. Ən uzun müddətli 10 transaksiyanı tapmaq.
+--5. Find the 10 longest-duration transactions.
 select t.*,(t.transactionenddatetime-t.transactionstartdatetime)*24*60 as long_term
 from texas t 
 order by long_term desc
@@ -57,7 +56,7 @@ fetch first 10 rows with ties;
 
 
 
---6. Hər bir Tranzaksiya Tipinə Görə Ümumi Tranzaksiya Sayı və Toplam Məbləğin tapilmasi.
+--6. Determining the total number of transactions and the total amount for each transaction type.
 select d.transactiontypename,count(t.transactionid),sum(t.transactionamount)
 from texas t
 join dim_transaction_type d on d.transactionid=t.transactiontypeid
@@ -67,8 +66,8 @@ group by d.transactiontypename;
 
 
 
---7. BirthDate sütununa əsasən müştəriləri yaş qruplarına ayırın və ortalama tranzaksiya məbləğini göstərin.
--- (25 yaşdan aşağı, 25-40 yaş, 41-60 yaş ve 60 yaşdan yuxarı)
+--7. Categorize customers into age groups based on the 'BirthDate' column and display the average transaction amount.
+-- (Under 25, 25–40, 41–60, and over 60 years old)
 SELECT Age_Group,ROUND(AVG(TRANSACTIONAMOUNT),0) AS Average_Transaction_Amount
 FROM (SELECT t.transactionamount,
     CASE
@@ -87,7 +86,7 @@ ORDER BY Age_Group;
 
 
 
---8. ATMID-yə görə hər bir ATM-də yerli və qeyri-yerli müştərilərin tranzaksiya sayını göstərin.
+--8. Show the number of transactions by local and non-local customers at each ATM, based on ATMID.
 SELECT atmid,Customer_type,COUNT(transactionid) AS Transaction_Count
 FROM (
   SELECT
@@ -103,15 +102,14 @@ ORDER BY atmid,Customer_Type;
 
 
 
---9. Ən Çox Müxtəlif ATM-lərdən İstifadə Edən İlk 10 Müştəri
-
+--9. Top 10 Customers Who Used the Greatest Variety of ATMs
 select d.cardholderid,count(distinct d.atmid ) as unique_atm
 from dim_customers d
 group by d.cardholderid
 order by unique_atm desc
 fetch first 10 rows with ties ;
 
---10. Müştəri Tiplərinə Görə Ümumi Tranzaksiya Məbləği
+--10. Total Transaction Amount by Customer Type
 SELECT
   sub.Customer_Type,
   SUM(sub.transactionamount) AS Total_Transaction_Amount
@@ -132,7 +130,7 @@ ORDER by sub.Customer_Type;
 
 
 
---11. Müştəri Adlarının Duplicated Olmadığı Üzrə Tranzaksiyalar
+--11. Transactions Where Customer Names Are Not Duplicated
 SELECT t.*
 FROM texas t
 JOIN dim_customers c ON t.CARDHOLDERID = c.CARDHOLDERID
@@ -143,14 +141,14 @@ WHERE c.firstname IN (
   HAVING COUNT(*) = 1
 );
 
---12. Hər Müştəri Üçün Tranzaksiya İlinə Görə Bölünməsi
+--12. Breakdown of Transactions by Year for Each Customer
 SELECT t.CARDHOLDERID,
 EXTRACT(YEAR FROM t.transactionstartdatetime) AS Transaction_Year,SUM(t.TRANSACTIONAMOUNT) AS Total_Amount
 FROM texas t
 GROUP BY t.CARDHOLDERID, EXTRACT(YEAR from t.transactionstartdatetime)
 ORDER BY t.CARDHOLDERID, Transaction_Year;
 
-----13. Hər Müştərinin Ən Çox Tranzaksiya Etmiş Olduğu ATM
+----13. The ATM Where Each Customer Has Performed the Most Transactions
 SELECT
   CARDHOLDERID,
   atmid,
@@ -168,7 +166,7 @@ WHERE rnk = 1
 ORDER BY transaction_count desc;
 
 
---14. Müştərilərin həftəlik tranzaksiya sayı və ortalama tranzaksiya məbləğini tapin.
+--14. Find the number of weekly transactions and the average transaction amount for customers.
 SELECT
   c.FIRSTNAME,
   c.LASTNAME,
@@ -183,7 +181,7 @@ ORDER BY c.FIRSTNAME, WeekNumber;
 
 
 
---15. Hər Müştərinin Ən Yüksək Tranzaksiya Məbləğinin 2-ci Yüksək Məbləğdən Fərqi (yalnız iki və daha çox tranzaksiya edən müştərilər)
+--15. Difference Between Each Customer's Highest Transaction Amount and the Second-Highest Amount (only for customers with two or more transactions)
 SELECT
   CARDHOLDERID,
   MAX(CASE WHEN rnk = 1 THEN TRANSACTIONAMOUNT END) -
